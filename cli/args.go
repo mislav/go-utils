@@ -7,20 +7,27 @@ import (
 
 type Args struct {
 	programName string
-	argv []string
+	argv        []string
 }
 
 func NewArgs(argv []string) *Args {
 	return &Args{
 		programName: argv[0],
-		argv: argv[1:],
+		argv:        argv[1:],
 	}
 }
 
-func (a *Args) SubcommandArgs() *Args {
+func (a *Args) SubcommandArgs(cmdName string) *Args {
+	var newArgv []string
+	if len(a.argv) > 1 {
+		newArgv = a.argv[1:]
+	} else {
+		newArgv = []string{}
+	}
+
 	return &Args{
-		programName: a.programName + " " + a.argv[0],
-		argv: a.argv[1:],
+		programName: a.programName + " " + cmdName,
+		argv:        newArgv,
 	}
 }
 
