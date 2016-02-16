@@ -1,12 +1,12 @@
 package cli
 
-var commands = make(map[string]func(*Args))
+var commands = make(map[string]func(*Cmd))
 
-func Lookup(cmdName string) func(*Args) {
+func Lookup(cmdName string) func(*Cmd) {
 	return commands[cmdName]
 }
 
-func Register(cmdName string, fn func(*Args)) {
+func Register(cmdName string, fn func(*Cmd)) {
 	commands[cmdName] = fn
 }
 

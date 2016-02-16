@@ -33,3 +33,7 @@ func (s *Set) Values() []string {
 	}
 	return values
 }
+
+func (s *Set) Length() int {
+	return len(s.data)
+}
