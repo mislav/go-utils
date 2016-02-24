@@ -2,6 +2,7 @@ package cli
 
 import (
 	"path"
+	"regexp"
 	"strings"
 )
 
@@ -35,30 +36,107 @@ func (a *Args) ProgramName() string {
 	return path.Base(a.programName)
 }
 
-func (a *Args) At(n int) string {
-	if len(a.argv) > n {
-		return a.argv[n]
+func (a *Args) Length() int {
+	return len(a.argv)
+}
+
+func (a *Args) String() string {
+	return strings.Join(a.argv, " ")
+}
+
+type Flag struct {
+	Short    string
+	Long     string
+	values   []string
+	provided bool
+}
+
+func (f *Flag) AddValue(v string) {
+	f.values = append(f.values, v)
+}
+
+func (f *Flag) IsProvided() bool {
+	return f.provided
+}
+
+func (f *Flag) String() string {
+	num := len(f.values)
+	if num > 0 {
+		return f.values[num-1]
 	} else {
 		return ""
 	}
 }
 
-func (a *Args) Word(n int) string {
-	for {
-		arg := a.At(n)
-		if arg != "" && strings.HasPrefix(arg, "-") {
-			n += 1
-			continue
-		}
-		return arg
-	}
+func (f *Flag) Strings() []string {
+	return f.values
 }
 
-func (a *Args) HasFlag(flag string) bool {
+func (f *Flag) Bool() bool {
+	val := strings.ToLower(f.String())
+	return val == "true" || val == "t" || val == "1"
+}
+
+func (a *Args) ExtractFlag(short, long string, ftype interface{}) (*Flag, *Args) {
+	explodedArgv := []string{}
+	multipleShortRE := regexp.MustCompile(`^-[a-zA-Z]{2,}$`)
+	flag := &Flag{
+		Short: short,
+		Long:  long,
+	}
+
 	for _, arg := range a.argv {
-		if arg == flag {
-			return true
+		if multipleShortRE.MatchString(arg) {
+			shorts := strings.TrimPrefix(arg, "-")
+			for _, f := range strings.Split(shorts, "") {
+				explodedArgv = append(explodedArgv, "-"+f)
+			}
+		} else {
+			explodedArgv = append(explodedArgv, arg)
 		}
 	}
-	return false
+
+	newArgv := []string{}
+	_, isBool := ftype.(bool)
+	grabNextValue := false
+
+	for _, arg := range explodedArgv {
+		if grabNextValue {
+			flag.AddValue(arg)
+			grabNextValue = false
+			continue
+		}
+
+		if strings.HasPrefix(arg, "--") {
+			parts := strings.SplitN(arg, "=", 2)
+			if parts[0] == flag.Long {
+				if len(parts) > 1 {
+					flag.AddValue(parts[1])
+				} else if isBool {
+					flag.AddValue("true")
+				} else {
+					grabNextValue = true
+				}
+				flag.provided = true
+				continue
+			}
+		} else if arg == flag.Short {
+			if isBool {
+				flag.AddValue("true")
+			} else {
+				grabNextValue = true
+			}
+			flag.provided = true
+			continue
+		}
+
+		newArgv = append(newArgv, arg)
+	}
+
+	args := &Args{
+		programName: a.programName,
+		argv:        newArgv,
+	}
+
+	return flag, args
 }
