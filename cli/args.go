@@ -26,8 +26,13 @@ func (a *Args) SubcommandArgs(cmdName string) *Args {
 		newArgv = []string{}
 	}
 
+	newProgramName := a.programName
+	if cmdName != "" {
+		newProgramName += " " + cmdName
+	}
+
 	return &Args{
-		programName: a.programName + " " + cmdName,
+		programName: newProgramName,
 		argv:        newArgv,
 	}
 }
@@ -38,6 +43,22 @@ func (a *Args) ProgramName() string {
 
 func (a *Args) Length() int {
 	return len(a.argv)
+}
+
+func (a *Args) Peek(index int) string {
+	if len(a.argv) > index {
+		return a.argv[index]
+	} else {
+		return ""
+	}
+}
+
+func (a *Args) Shift() (string, *Args) {
+	if !strings.HasPrefix(a.argv[0], "-") {
+		return a.argv[0], a.SubcommandArgs("")
+	} else {
+		return "", a
+	}
 }
 
 func (a *Args) String() string {
