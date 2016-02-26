@@ -130,7 +130,7 @@ func (a *Args) ExtractFlag(short, long string, ftype interface{}) (*Flag, *Args)
 
 		if strings.HasPrefix(arg, "--") {
 			parts := strings.SplitN(arg, "=", 2)
-			if parts[0] == flag.Long {
+			if flag.Long != "" && parts[0] == flag.Long {
 				if len(parts) > 1 {
 					flag.AddValue(parts[1])
 				} else if isBool {
@@ -141,7 +141,7 @@ func (a *Args) ExtractFlag(short, long string, ftype interface{}) (*Flag, *Args)
 				flag.provided = true
 				continue
 			}
-		} else if arg == flag.Short {
+		} else if flag.Short != "" && arg == flag.Short {
 			if isBool {
 				flag.AddValue("true")
 			} else {
