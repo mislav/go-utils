@@ -57,10 +57,30 @@ func NewClient(rootUrl *url.URL, configure func(*Transport)) *Client {
 		configure(tr)
 	}
 
+	maxRedirects := 10
+	checkRedirect := func(req *http.Request, via []*http.Request) error {
+		if req.Host == "" {
+			req.Host = req.URL.Host
+		}
+
+		for key, val := range via[0].Header {
+			if req.Host == via[0].Host || !strings.EqualFold(key, "Authorization") {
+				req.Header[key] = val
+			}
+		}
+
+		if len(via) >= maxRedirects {
+			return fmt.Errorf("stopped after %d redirects", maxRedirects)
+		} else {
+			return nil
+		}
+	}
+
 	return &Client{
 		rootUrl: rootUrl,
 		httpClient: &http.Client{
-			Transport: tr,
+			Transport:     tr,
+			CheckRedirect: checkRedirect,
 		},
 	}
 }
