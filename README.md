@@ -9,8 +9,11 @@
 
 * `api.Client` struct: thin wrapper around `net/http`
 
+### `pathname` package
+
+* `pathname.Pathname` struct: Ruby `Pathname`-like handling of filesystem paths
+
 ### `utils` package
 
 * `utils.Env` struct: a map-based approach to `os.Environ()`
 * `utils.Set` struct
-* `utils.Pathname` struct: Ruby `Pathname`-like handling of filesystem paths
