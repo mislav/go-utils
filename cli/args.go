@@ -61,6 +61,10 @@ func (a *Args) Shift() (string, *Args) {
 	}
 }
 
+func (a *Args) Slice(start int) []string {
+	return a.argv[start:]
+}
+
 func (a *Args) String() string {
 	return strings.Join(a.argv, " ")
 }
