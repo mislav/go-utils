@@ -1,13 +1,19 @@
 package cli
 
 var commands = make(map[string]func(*Cmd))
+var help = make(map[string]string)
 
 func Lookup(cmdName string) func(*Cmd) {
 	return commands[cmdName]
 }
 
-func Register(cmdName string, fn func(*Cmd)) {
+func LookupHelp(cmdName string) string {
+	return help[cmdName]
+}
+
+func Register(cmdName, helpString string, fn func(*Cmd)) {
 	commands[cmdName] = fn
+	help[cmdName] = helpString
 }
 
 func CommandNames() []string {
