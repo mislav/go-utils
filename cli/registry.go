@@ -19,9 +19,9 @@ func Register(cmdName, helpString string, fn func(*Cmd)) {
 func CommandNames() []string {
 	names := make([]string, len(commands))
 	i := 0
-	for name, _ := range commands {
+	for name := range commands {
 		names[i] = name
-		i += 1
+		i++
 	}
 	return names
 }
