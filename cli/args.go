@@ -74,6 +74,7 @@ type Flag struct {
 	Long     string
 	values   []string
 	provided bool
+	Ftype    interface{}
 }
 
 func (f *Flag) AddValue(v string) {
@@ -100,6 +101,46 @@ func (f *Flag) Strings() []string {
 func (f *Flag) Bool() bool {
 	val := strings.ToLower(f.String())
 	return val == "true" || val == "t" || val == "1"
+}
+
+// Flags provides methods to access all flags for a command
+type Flags struct {
+	flags map[string]*Flag
+}
+
+func (f *Flags) IsProvided(long string) bool {
+	flag := f.flags[long]
+	if flag != nil {
+		return flag.IsProvided()
+	}
+	return false
+}
+
+func (f *Flags) String(long string) string {
+	flag := f.flags[long]
+	if flag != nil {
+		return flag.String()
+	}
+	return ""
+}
+
+func (f *Flags) Bool(long string) bool {
+	flag := f.flags[long]
+	if flag != nil {
+		return flag.Bool()
+	}
+	return false
+}
+
+func (f *Flags) AddFlag(flag *Flag) {
+	if f.flags == nil {
+		f.flags = make(map[string]*Flag)
+	}
+	f.flags[flag.Long] = flag
+}
+
+func (a *Args) Extract(f Flag) (*Flag, *Args) {
+	return a.ExtractFlag(f.Short, f.Long, f.Ftype)
 }
 
 func (a *Args) ExtractFlag(short, long string, ftype interface{}) (*Flag, *Args) {
