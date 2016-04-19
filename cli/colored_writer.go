@@ -44,6 +44,13 @@ func NewColoredWriter(file *os.File) *ColoredWriter {
 	}
 }
 
+func NewWriter(w io.Writer) *ColoredWriter {
+	return &ColoredWriter{
+		out:      w,
+		colorize: false,
+	}
+}
+
 func (c *ColoredWriter) AlwaysColorize() {
 	c.colorize = true
 }
