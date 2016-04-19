@@ -74,16 +74,17 @@ func (a *App) Run(arguments []string) {
 	}
 	command := a.commands[cmdName]
 	cmdFunc := command.Function
-	flags := &Flags{}
+	parameters := &Parameters{}
+	var parameter *Parameter
 	for _, flag := range a.flags {
-		flag, args = args.Extract(*flag)
-		flags.AddFlag(flag)
+		parameter, args = args.Extract(*flag)
+		parameters.AddParameter(parameter)
 	}
 	for _, flag := range command.flags {
-		flag, args = args.Extract(*flag)
-		flags.AddFlag(flag)
+		parameter, args = args.Extract(*flag)
+		parameters.AddParameter(parameter)
 	}
-	cmd := NewCmd(args, flags)
+	cmd := NewCmd(args, parameters)
 	if a.Before != nil {
 		a.Before(cmd)
 	}

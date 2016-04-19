@@ -48,17 +48,15 @@ func (a *Args) Length() int {
 func (a *Args) Peek(index int) string {
 	if len(a.argv) > index {
 		return a.argv[index]
-	} else {
-		return ""
 	}
+	return ""
 }
 
 func (a *Args) Shift() (string, *Args) {
 	if !strings.HasPrefix(a.argv[0], "-") {
 		return a.argv[0], a.SubcommandArgs("")
-	} else {
-		return "", a
 	}
+	return "", a
 }
 
 func (a *Args) Slice(start int) []string {
@@ -69,88 +67,10 @@ func (a *Args) String() string {
 	return strings.Join(a.argv, " ")
 }
 
-type Flag struct {
-	Short    string
-	Long     string
-	Help     string
-	values   []string
-	provided bool
-	Ftype    interface{}
-}
-
-func (f *Flag) AddValue(v string) {
-	f.values = append(f.values, v)
-}
-
-func (f *Flag) IsProvided() bool {
-	return f.provided
-}
-
-func (f *Flag) String() string {
-	num := len(f.values)
-	if num > 0 {
-		return f.values[num-1]
-	} else {
-		return ""
-	}
-}
-
-func (f *Flag) Strings() []string {
-	return f.values
-}
-
-func (f *Flag) Bool() bool {
-	val := strings.ToLower(f.String())
-	return val == "true" || val == "t" || val == "1"
-}
-
-// Flags provides methods to access all flags for a command
-type Flags struct {
-	flags map[string]*Flag
-}
-
-func (f *Flags) IsProvided(long string) bool {
-	flag := f.flags[long]
-	if flag != nil {
-		return flag.IsProvided()
-	}
-	return false
-}
-
-func (f *Flags) String(long string) string {
-	flag := f.flags[long]
-	if flag != nil {
-		return flag.String()
-	}
-	return ""
-}
-
-func (f *Flags) Bool(long string) bool {
-	flag := f.flags[long]
-	if flag != nil {
-		return flag.Bool()
-	}
-	return false
-}
-
-func (f *Flags) AddFlag(flag *Flag) {
-	if f.flags == nil {
-		f.flags = make(map[string]*Flag)
-	}
-	f.flags[flag.Long] = flag
-}
-
-func (a *Args) Extract(f Flag) (*Flag, *Args) {
-	return a.ExtractFlag(f.Short, f.Long, f.Ftype)
-}
-
-func (a *Args) ExtractFlag(short, long string, ftype interface{}) (*Flag, *Args) {
+func (a *Args) Extract(flag Flag) (*Parameter, *Args) {
+	parameter := Parameter{Flag: flag}
 	explodedArgv := []string{}
 	multipleShortRE := regexp.MustCompile(`^-[a-zA-Z]{2,}$`)
-	flag := &Flag{
-		Short: short,
-		Long:  long,
-	}
 
 	for _, arg := range a.argv {
 		if multipleShortRE.MatchString(arg) {
@@ -164,36 +84,36 @@ func (a *Args) ExtractFlag(short, long string, ftype interface{}) (*Flag, *Args)
 	}
 
 	newArgv := []string{}
-	_, isBool := ftype.(bool)
+	_, isBool := parameter.Ftype.(bool)
 	grabNextValue := false
 
 	for _, arg := range explodedArgv {
 		if grabNextValue {
-			flag.AddValue(arg)
+			parameter.AddValue(arg)
 			grabNextValue = false
 			continue
 		}
 
 		if strings.HasPrefix(arg, "--") {
 			parts := strings.SplitN(arg, "=", 2)
-			if flag.Long != "" && parts[0] == flag.Long {
+			if parameter.Long != "" && parts[0] == parameter.Long {
 				if len(parts) > 1 {
-					flag.AddValue(parts[1])
+					parameter.AddValue(parts[1])
 				} else if isBool {
-					flag.AddValue("true")
+					parameter.AddValue("true")
 				} else {
 					grabNextValue = true
 				}
-				flag.provided = true
+				parameter.provided = true
 				continue
 			}
-		} else if flag.Short != "" && arg == flag.Short {
+		} else if parameter.Short != "" && arg == parameter.Short {
 			if isBool {
-				flag.AddValue("true")
+				parameter.AddValue("true")
 			} else {
 				grabNextValue = true
 			}
-			flag.provided = true
+			parameter.provided = true
 			continue
 		}
 
@@ -205,5 +125,5 @@ func (a *Args) ExtractFlag(short, long string, ftype interface{}) (*Flag, *Args)
 		argv:        newArgv,
 	}
 
-	return flag, args
+	return &parameter, args
 }
