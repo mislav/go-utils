@@ -23,10 +23,12 @@ func (c *Cmd) Exit(code int) {
 // NewCmd initializes a Cmd environment with the given arguments and flags.
 // Stdout and Stderr will be initialized with a ColoredWriter on the correct stream
 func NewCmd(args *Args, flags *Flags) *Cmd {
+	stderr := NewColoredWriter(os.Stderr)
+	stderr.PushColor("red")
 	return &Cmd{
 		Flags:  flags,
 		Stdout: NewColoredWriter(os.Stdout),
-		Stderr: NewColoredWriter(os.Stderr),
+		Stderr: stderr,
 		Env:    make(map[string]string),
 		Args:   args,
 	}
