@@ -72,6 +72,7 @@ func (a *Args) String() string {
 type Flag struct {
 	Short    string
 	Long     string
+	Help     string
 	values   []string
 	provided bool
 	Ftype    interface{}

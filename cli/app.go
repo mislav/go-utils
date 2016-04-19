@@ -36,6 +36,11 @@ func (a *App) Commands() map[string]Command {
 	return a.commands
 }
 
+// Flags returns all registered application wide Flags
+func (a *App) Flags() map[string]*Flag {
+	return a.flags
+}
+
 // RegisterCommand registers a Command
 func (a *App) RegisterCommand(c Command) {
 	if a.commands == nil {
