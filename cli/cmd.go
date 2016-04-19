@@ -15,9 +15,11 @@ func (c *Cmd) Exit(code int) {
 }
 
 func NewCmd(args *Args) *Cmd {
+	stderr := NewColoredWriter(os.Stderr)
+	stderr.PushColor("red")
 	return &Cmd{
 		Args:   args,
 		Stdout: NewColoredWriter(os.Stdout),
-		Stderr: NewColoredWriter(os.Stderr),
+		Stderr: stderr,
 	}
 }
