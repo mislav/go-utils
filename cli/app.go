@@ -65,6 +65,11 @@ func (c *Command) RegisterFlag(f Flag) {
 	c.flags[f.Long] = &f
 }
 
+// Flags returns all registered Flags for the Command
+func (c *Command) Flags() map[string]*Flag {
+	return c.flags
+}
+
 // Run executs the App with the given arguments
 func (a *App) Run(arguments []string) {
 	args := NewArgs(arguments)
