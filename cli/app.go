@@ -10,7 +10,7 @@ type App struct {
 	Name               string
 	DefaultCommandName string
 	commands           map[string]Command
-	Fallback           func(c *Cmd, cmdName string)
+	Fallback           func(c *Cmd, cmdName string) int
 	Before             func(c *Cmd, cmdName string) string
 	flags              map[string]*Flag
 }
@@ -19,7 +19,7 @@ type App struct {
 type Command struct {
 	Name     string
 	Help     string
-	Function func(*Cmd)
+	Function func(*Cmd) int
 	flags    map[string]*Flag
 }
 
@@ -71,7 +71,7 @@ func (c *Command) Flags() map[string]*Flag {
 }
 
 // Run executs the App with the given arguments
-func (a *App) Run(arguments []string) {
+func (a *App) Run(arguments []string) int {
 	args := NewArgs(arguments)
 	cmdName := args.Peek(0)
 	if cmdName == "" {
@@ -97,9 +97,11 @@ func (a *App) Run(arguments []string) {
 			cmdFunc = a.commands[cmdName].Function
 		}
 	}
+	var statusCode int
 	if cmdFunc != nil {
-		cmdFunc(cmd)
+		statusCode = cmdFunc(cmd)
 	} else {
-		a.Fallback(cmd, cmdName)
+		statusCode = a.Fallback(cmd, cmdName)
 	}
+	return statusCode
 }
