@@ -11,7 +11,7 @@ type App struct {
 	DefaultCommandName string
 	commands           map[string]Command
 	Fallback           func(c *Cmd, cmdName string)
-	Before             func(c *Cmd)
+	Before             func(c *Cmd, cmdName string) string
 	flags              map[string]*Flag
 }
 
@@ -91,7 +91,11 @@ func (a *App) Run(arguments []string) {
 	}
 	cmd := NewCmd(args, parameters)
 	if a.Before != nil {
-		a.Before(cmd)
+		res := a.Before(cmd, cmdName)
+		if res != "" {
+			cmdName = res
+			cmdFunc = a.commands[cmdName].Function
+		}
 	}
 	if cmdFunc != nil {
 		cmdFunc(cmd)
