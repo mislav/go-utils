@@ -7,7 +7,6 @@ var once sync.Once
 
 // App saves registered subcommands, flags and a bit more
 type App struct {
-	Name               string
 	DefaultCommandName string
 	commands           map[string]Command
 	Fallback           func(c *Cmd, cmdName string) int

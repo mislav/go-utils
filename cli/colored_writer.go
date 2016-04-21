@@ -32,7 +32,7 @@ var colors = map[string]string{
 }
 
 type ColoredWriter struct {
-	colorize   bool
+	Colorize   bool
 	colorStack []string
 	out        io.Writer
 }
@@ -40,29 +40,25 @@ type ColoredWriter struct {
 func NewColoredWriter(file *os.File) *ColoredWriter {
 	return &ColoredWriter{
 		out:      colorable.NewColorable(file),
-		colorize: isatty.IsTerminal(file.Fd()),
+		Colorize: isatty.IsTerminal(file.Fd()),
 	}
 }
 
 func NewWriter(w io.Writer) *ColoredWriter {
 	return &ColoredWriter{
 		out:      w,
-		colorize: false,
+		Colorize: false,
 	}
 }
 
-func (c *ColoredWriter) AlwaysColorize() {
-	c.colorize = true
-}
-
 func (c *ColoredWriter) PushColor(color string) {
-	if c.colorize {
+	if c.Colorize {
 		c.colorStack = append(c.colorStack, color)
 	}
 }
 
 func (c *ColoredWriter) PopColor() {
-	if c.colorize {
+	if c.Colorize {
 		c.colorStack = c.colorStack[0 : len(c.colorStack)-1]
 	}
 }
@@ -105,14 +101,14 @@ func (c *ColoredWriter) Cprintln(color string, a ...interface{}) (n int, err err
 }
 
 func (c *ColoredWriter) Cprint(color string, a ...interface{}) (n int, err error) {
-	if c.colorize {
+	if c.Colorize {
 		_, err = fmt.Fprintf(c.out, "\033[%sm", colors[color])
 		if err != nil {
 			return 0, err
 		}
 	}
 	n, err = fmt.Fprint(c.out, a...)
-	if c.colorize {
+	if c.Colorize {
 		_, err = c.out.Write([]byte("\033[0m"))
 	}
 	return
@@ -124,7 +120,7 @@ func (c *ColoredWriter) Cprintf(format string, a ...interface{}) (int, error) {
 	if matches := cprintfRe.FindAllStringSubmatch(format, -1); matches != nil {
 		i := 0
 		format = cprintfRe.ReplaceAllStringFunc(format, func(string) string {
-			if !c.colorize {
+			if !c.Colorize {
 				return ""
 			}
 			color := matches[i][1]
