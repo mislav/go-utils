@@ -18,11 +18,15 @@ type Cmd struct {
 type CommandConfig interface {
 }
 
-// Exit should be called at the end of each command of the CLI to exit with the
-// correct code
-func (c *Cmd) Exit(code int) {
-	os.Exit(code)
-}
+// ExitValue is a type which describes the return value of the application
+type ExitValue int
+
+const (
+	// Success lets the programm return with 0
+	Success ExitValue = 0
+	// Failure lets the programm return with 1
+	Failure ExitValue = 1
+)
 
 // NewCmd initializes a Cmd environment with the given arguments and flags.
 // Stdout and Stderr will be initialized with a ColoredWriter on the correct stream
