@@ -78,6 +78,20 @@ func (a *Args) Slice(start int) []string {
 	return a.argv[start:]
 }
 
+// RemoveUnusedFlags removes all arguments starting with "-"
+func (a *Args) RemoveUnusedFlags() []string {
+	var args, unusedArgs []string
+	for _, arg := range a.argv {
+		if strings.HasPrefix(arg, "-") {
+			unusedArgs = append(unusedArgs, arg)
+		} else {
+			args = append(args, arg)
+		}
+	}
+	a.argv = args
+	return unusedArgs
+}
+
 // String returns all arguments seperated as
 func (a *Args) String() string {
 	return strings.Join(a.argv, " ")
