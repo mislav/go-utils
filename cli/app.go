@@ -15,7 +15,7 @@ type App struct {
 	Fallback func(c *Cmd, cmdName string) ExitValue
 	// Before function will be called after cmd is initialize and can adjust it
 	// before it will be passed to the correct command
-	Before func(c *Cmd, cmdName string) string
+	Before func(c *Cmd, cmdName string)
 	flags  map[string]Flag
 }
 
@@ -28,6 +28,7 @@ type Command struct {
 	Help     string
 	Function func(*Cmd) ExitValue
 	flags    map[string]Flag
+	commands map[string]Command
 }
 
 // AppInstance returns the singleton instance of App
@@ -68,6 +69,21 @@ func (a *App) RegisterFlag(f ...Flag) {
 	}
 }
 
+// Commands returns all registered Commands
+func (c *Command) Commands() map[string]Command {
+	return c.commands
+}
+
+// RegisterCommand registers Commands
+func (c *Command) RegisterCommand(cmds ...Command) {
+	if c.commands == nil {
+		c.commands = make(map[string]Command)
+	}
+	for _, command := range cmds {
+		c.commands[command.Name] = command
+	}
+}
+
 // RegisterFlag registers Flags
 func (c *Command) RegisterFlag(f ...Flag) {
 	if c.flags == nil {
@@ -91,27 +107,35 @@ func (a *App) Run(arguments []string) ExitValue {
 		cmdName = a.DefaultCommandName
 	}
 	command := a.commands[cmdName]
-	cmdFunc := command.Function
 	parameters := &Parameters{}
 	var parameter *Parameter
 	for _, flag := range a.flags {
 		parameter, args = args.Extract(flag)
 		parameters.AddParameter(parameter)
 	}
-	for _, flag := range command.flags {
-		parameter, args = args.Extract(flag)
-		parameters.AddParameter(parameter)
-	}
+	args, cmdFunc := a.command(command, args, parameters)
 	cmd := NewCmd(args, parameters)
 	if a.Before != nil {
-		res := a.Before(cmd, cmdName)
-		if res != "" {
-			cmdName = res
-			cmdFunc = a.commands[cmdName].Function
-		}
+		a.Before(cmd, cmdName)
 	}
 	if cmdFunc != nil {
 		return cmdFunc(cmd)
 	}
 	return a.Fallback(cmd, cmdName)
+}
+
+func (a *App) command(command Command, args *Args, parameters *Parameters) (*Args, func(*Cmd) ExitValue) {
+	args = args.SubcommandArgs(command.Name)
+	var parameter *Parameter
+	for _, flag := range command.flags {
+		parameter, args = args.Extract(flag)
+		parameters.AddParameter(parameter)
+	}
+	if command.commands != nil {
+		subCommandName := args.Peek(0)
+		if subCommand, ok := command.commands[subCommandName]; ok {
+			return a.command(subCommand, args, parameters)
+		}
+	}
+	return args, command.Function
 }
