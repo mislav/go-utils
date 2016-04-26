@@ -5,7 +5,7 @@ import "sync"
 var appSingleton *App
 var once sync.Once
 
-// App saves registered subcommands, flags and a bit more
+// App saves registered commands, flags and a bit more
 type App struct {
 	// DefaultCommandName: a command with this name will be called if no other name was provided
 	DefaultCommandName string
@@ -19,16 +19,18 @@ type App struct {
 	flags  map[string]Flag
 }
 
-// Command is the struct for one subcommand of the app including help text and flags
+// Command is the struct for one command of the app including help text and flags
 type Command struct {
 	Name string
 	// Info is a short string shown behind the command in the help
 	Info string
 	// Help text will be shown after the info text if the user requests help for this command
-	Help     string
-	Function func(*Cmd) ExitValue
-	flags    map[string]Flag
-	commands map[string]Command
+	Help string
+	// Parameter string which will be displayed in the usage section of the help
+	Parameter string
+	Function  func(*Cmd) ExitValue
+	flags     map[string]Flag
+	commands  map[string]Command
 }
 
 // AppInstance returns the singleton instance of App
